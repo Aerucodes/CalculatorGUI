@@ -1,0 +1,218 @@
+// Source code is decompiled from a .class file using FernFlower decompiler.
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+
+public class Calculator extends JFrame implements ActionListener {
+   private JTextField display;
+   private JLabel operationLabel;
+   private StringBuilder currentInput = new StringBuilder();
+   private double result = 0.0;
+   private String operator = "";
+   private boolean startNewNumber = true;
+   private final Color BG_COLOR = new Color(30, 32, 36, 220);
+   private final Color BTN_COLOR = new Color(45, 47, 51, 230);
+   private final Color BTN_OP_COLOR = new Color(60, 63, 70, 230);
+   private final Color BTN_EQ_COLOR = new Color(0, 120, 215, 255);
+   private final Color BTN_EQ_TEXT_COLOR;
+   private final Color BTN_TEXT_COLOR;
+   private final Color BTN_OP_TEXT_COLOR;
+   private final Font BTN_FONT;
+   private final Font DISP_FONT;
+   private final Font OP_FONT;
+
+   public Calculator() {
+      this.BTN_EQ_TEXT_COLOR = Color.WHITE;
+      this.BTN_TEXT_COLOR = Color.WHITE;
+      this.BTN_OP_TEXT_COLOR = Color.WHITE;
+      this.BTN_FONT = new Font("Segoe UI", 0, 22);
+      this.DISP_FONT = new Font("Segoe UI", 1, 38);
+      this.OP_FONT = new Font("Segoe UI", 0, 18);
+
+      try {
+         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+      } catch (Exception var11) {
+      }
+
+      this.setTitle("Calculator");
+      this.setDefaultCloseOperation(3);
+      this.setSize(360, 540);
+      this.setLocationRelativeTo((Component)null);
+      this.setResizable(false);
+      this.getContentPane().setBackground(this.BG_COLOR);
+      this.setLayout(new BorderLayout(0, 0));
+      this.operationLabel = new JLabel(" ");
+      this.operationLabel.setFont(this.OP_FONT);
+      this.operationLabel.setForeground(new Color(180, 180, 180));
+      this.operationLabel.setHorizontalAlignment(4);
+      this.operationLabel.setBorder(new EmptyBorder(8, 16, 0, 16));
+      this.operationLabel.setBackground(this.BG_COLOR);
+      this.display = new JTextField("0");
+      this.display.setEditable(false);
+      this.display.setFont(this.DISP_FONT);
+      this.display.setHorizontalAlignment(4);
+      this.display.setBackground(new Color(30, 32, 36, 220));
+      this.display.setForeground(this.BTN_TEXT_COLOR);
+      this.display.setBorder(new EmptyBorder(8, 16, 24, 16));
+      JPanel var1 = new JPanel();
+      var1.setLayout(new BorderLayout());
+      var1.setBackground(this.BG_COLOR);
+      var1.add(this.operationLabel, "North");
+      var1.add(this.display, "Center");
+      this.add(var1, "North");
+      Calculator$1 var2 = new Calculator$1(this, new GridLayout(5, 4, 10, 10));
+      var2.setOpaque(false);
+      var2.setBorder(new EmptyBorder(10, 10, 10, 10));
+      String[] var3 = new String[]{"C", "", "", "/", "7", "8", "9", "*", "4", "5", "6", "-", "1", "2", "3", "+", "0", ".", "=", "%"};
+      String[] var4 = var3;
+      int var5 = var3.length;
+
+      for(int var6 = 0; var6 < var5; ++var6) {
+         String var7 = var4[var6];
+         if (var7.isEmpty()) {
+            var2.add(new JLabel());
+         } else {
+            JButton var9 = new JButton(var7);
+            var9.setFont(this.BTN_FONT);
+            var9.setFocusPainted(false);
+            var9.setOpaque(false);
+            var9.setContentAreaFilled(false);
+            var9.setBorder(new Calculator$RoundedBorder(22));
+            var9.setForeground(this.BTN_TEXT_COLOR);
+            if (var7.equals("=")) {
+               var9.setBackground(this.BTN_EQ_COLOR);
+               var9.setForeground(this.BTN_EQ_TEXT_COLOR);
+            } else if ("+-*/%".contains(var7)) {
+               var9.setBackground(this.BTN_OP_COLOR);
+               var9.setForeground(this.BTN_OP_TEXT_COLOR);
+            } else if (var7.equals("C")) {
+               var9.setBackground(new Color(200, 50, 50, 230));
+               var9.setForeground(Color.WHITE);
+            } else {
+               var9.setBackground(this.BTN_COLOR);
+               var9.setForeground(this.BTN_TEXT_COLOR);
+            }
+
+            Calculator$RoundedButton var10 = new Calculator$RoundedButton(var9.getText(), var9.getBackground(), var9.getForeground(), 22, this.BTN_FONT);
+            var10.addMouseListener(new Calculator$2(this, var7, var10));
+            var10.addActionListener(this);
+            var2.add(var10);
+         }
+      }
+
+      this.add(var2, "Center");
+   }
+
+   public void actionPerformed(ActionEvent var1) {
+      String var2 = var1.getActionCommand();
+      if ("0123456789.".contains(var2)) {
+         if (this.startNewNumber) {
+            this.currentInput.setLength(0);
+            this.startNewNumber = false;
+         }
+
+         if (var2.equals(".") && this.currentInput.toString().contains(".")) {
+            return;
+         }
+
+         this.currentInput.append(var2);
+         this.display.setText(this.currentInput.toString());
+         this.updateOperationLabel();
+      } else if ("+-*/%".contains(var2)) {
+         if (this.currentInput.length() > 0) {
+            this.calculate();
+         }
+
+         this.operator = var2;
+         this.startNewNumber = true;
+         this.updateOperationLabel();
+      } else if (var2.equals("=")) {
+         this.calculate();
+         this.operator = "";
+         this.startNewNumber = true;
+         this.updateOperationLabel();
+      } else if (var2.equals("C")) {
+         this.result = 0.0;
+         this.operator = "";
+         this.currentInput.setLength(0);
+         this.display.setText("0");
+         this.startNewNumber = true;
+         this.operationLabel.setText(" ");
+      }
+
+   }
+
+   private void calculate() {
+      double var1 = this.currentInput.length() > 0 ? Double.parseDouble(this.currentInput.toString()) : this.result;
+      switch (this.operator) {
+         case "+":
+            this.result += var1;
+            break;
+         case "-":
+            this.result -= var1;
+            break;
+         case "*":
+            this.result *= var1;
+            break;
+         case "/":
+            this.result = var1 == 0.0 ? 0.0 : this.result / var1;
+            break;
+         case "%":
+            this.result %= var1;
+            break;
+         default:
+            this.result = var1;
+      }
+
+      this.display.setText(this.result % 1.0 == 0.0 ? String.valueOf((int)this.result) : String.valueOf(this.result));
+      this.currentInput.setLength(0);
+      this.currentInput.append(this.result);
+   }
+
+   private void updateOperationLabel() {
+      String var1 = "";
+      switch (this.operator) {
+         case "+":
+            var1 = "+";
+            break;
+         case "-":
+            var1 = "-";
+            break;
+         case "*":
+            var1 = "Ã—";
+            break;
+         case "/":
+            var1 = "Ã·";
+            break;
+         case "%":
+            var1 = "%";
+      }
+
+      if (!this.operator.isEmpty() && !this.startNewNumber) {
+         this.operationLabel.setText(this.display.getText() + " " + var1);
+      } else if (!this.operator.isEmpty() && this.startNewNumber) {
+         this.operationLabel.setText(this.result + " " + var1);
+      } else {
+         this.operationLabel.setText(" ");
+      }
+
+   }
+
+   public static void main(String[] var0) {
+      SwingUtilities.invokeLater(() -> {
+         (new Calculator()).setVisible(true);
+      });
+   }
+}
